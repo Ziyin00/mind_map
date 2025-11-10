@@ -80,7 +80,10 @@ export default function MindMap() {
       setUser(userId, userName)
       setCurrentSession(sessionId)
 
-      socketInstance = io('http://localhost:8000', {
+      // Get backend URL from environment variable or use default
+      const backendUrl = import.meta.env.VITE_BACKEND_URL || 'https://mind-map-uqyn.onrender.com'
+      
+      socketInstance = io(backendUrl, {
         transports: ['websocket'],
         reconnection: true,
         reconnectionDelay: 1000,
@@ -104,7 +107,8 @@ export default function MindMap() {
 
       socketInstance.on('connect_error', (err) => {
         console.error('Connection error:', err)
-        setError('Failed to connect to server. Make sure the backend is running on http://localhost:8000')
+        const backendUrl = import.meta.env.VITE_BACKEND_URL || 'https://mind-map-uqyn.onrender.com'
+        setError(`Failed to connect to server at ${backendUrl}`)
         setIsInitializing(false)
         addToast('Connection failed', 'error', 5000)
       })

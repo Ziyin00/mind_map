@@ -13,6 +13,7 @@ from models import Session
 # Allowed origins for CORS
 ALLOWED_ORIGINS = [
     "https://mind-map-fvvh.vercel.app",
+    "https://mind-map-uqyn.onrender.com",
     "http://localhost:5173",
     "http://localhost:5174",
     "http://localhost:3000",
