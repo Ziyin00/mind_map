@@ -6,8 +6,12 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-# Database URL
+# Database URL - must use postgresql+asyncpg:// for async operations
 DATABASE_URL = os.getenv("DATABASE_URL", "postgresql+asyncpg://user:password@localhost:5432/mindmap_db")
+
+# Convert postgresql:// to postgresql+asyncpg:// if needed
+if DATABASE_URL.startswith("postgresql://") and "+asyncpg" not in DATABASE_URL:
+    DATABASE_URL = DATABASE_URL.replace("postgresql://", "postgresql+asyncpg://", 1)
 
 # Create async engine
 engine = create_async_engine(
