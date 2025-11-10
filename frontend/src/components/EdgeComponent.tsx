@@ -21,7 +21,6 @@ export const EdgeComponent: React.FC<EdgeComponentProps> = ({
 
   // Calculate control points for smooth curve
   const dx = targetX - sourceX
-  const dy = targetY - sourceY
   const curvature = 0.3
   const cp1x = sourceX + dx * curvature
   const cp1y = sourceY

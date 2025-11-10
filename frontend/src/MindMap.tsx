@@ -36,15 +36,12 @@ export default function MindMap() {
   const {
     isConnected,
     userName,
-    userId,
     setSocket,
     setConnected,
     setCurrentSession,
     setUser,
     onlineUsers,
     addOnlineUser,
-    removeOnlineUser,
-    setOnlineUsers,
   } = useSocketStore()
 
   const {

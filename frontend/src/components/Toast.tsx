@@ -17,11 +17,9 @@ interface ToastProps {
 }
 
 export const ToastComponent: React.FC<ToastProps> = ({ toast, onRemove }) => {
-  const [isVisible, setIsVisible] = useState(false)
   const [isLeaving, setIsLeaving] = useState(false)
 
   useEffect(() => {
-    setIsVisible(true)
     const timer = setTimeout(() => {
       setIsLeaving(true)
       setTimeout(() => onRemove(toast.id), 300)
