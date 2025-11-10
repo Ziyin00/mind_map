@@ -5,12 +5,24 @@ from pydantic import BaseModel
 import socketio
 from socketio import AsyncServer, ASGIApp
 from database import AsyncSessionLocal
+from sqlalchemy import text
 import crud
 import schemas
+from models import Session
 
+# Allowed origins for CORS
+ALLOWED_ORIGINS = [
+    "https://mind-map-fvvh.vercel.app",
+    "http://localhost:5173",
+    "http://localhost:5174",
+    "http://localhost:3000",
+    "http://127.0.0.1:5173",
+    "http://127.0.0.1:5174",
+    "http://127.0.0.1:3000",
+]
 
-# Initialize Socket.IO server
-sio = AsyncServer(async_mode='asgi', cors_allowed_origins='*')
+# Initialize Socket.IO server with CORS
+sio = AsyncServer(async_mode='asgi', cors_allowed_origins=ALLOWED_ORIGINS)
 
 # Initialize FastAPI app
 app = FastAPI(title="MindMap API", version="1.0.0")
@@ -18,7 +30,7 @@ app = FastAPI(title="MindMap API", version="1.0.0")
 # Configure CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=['*'],
+    allow_origins=ALLOWED_ORIGINS,
     allow_credentials=True,
     allow_methods=['*'],
     allow_headers=['*'],
@@ -112,13 +124,19 @@ async def join_session(sid, data):
         room = f'session_{session_id}'
         sio.enter_room(sid, room)
         
-        # Verify session exists
+        # Verify session exists, create if it doesn't
         async with AsyncSessionLocal() as db:
             session = await crud.get_session(db, session_id)
             if not session:
-                await sio.emit('error', {'message': 'Session not found'}, to=sid)
-                sio.leave_room(sid, room)
-                return
+                # Auto-create session if it doesn't exist
+                session = Session(id=session_id, title=f'Session {session_id}')
+                db.add(session)
+                await db.commit()
+                # Update sequence to avoid conflicts with future auto-generated IDs
+                await db.execute(text(f"SELECT setval('sessions_id_seq', GREATEST({session_id}, (SELECT MAX(id) FROM sessions)))"))
+                await db.commit()
+                await db.refresh(session)
+                print(f'✅ Auto-created session {session_id}')
             
             # Get initial state and send to client
             state = await crud.get_session_state(db, session_id)
