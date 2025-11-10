@@ -87,6 +87,15 @@
       linear-gradient(90deg, rgba(148, 163, 184, 0.04) 1px, transparent 1px);
     background-size: 28px 28px;
     background-position: 0 0, 0 0;
+    -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+    scroll-behavior: smooth;
+  }
+  
+  /* Responsive canvas adjustments */
+  @media (max-width: 640px) {
+    .canvas-bg {
+      background-size: 20px 20px;
+    }
   }
   
   /* Smooth animations */

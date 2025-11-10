@@ -178,10 +178,17 @@ export default function MindMap() {
 
   // Canvas dragging
   const handleCanvasMouseDown = (e: React.MouseEvent) => {
-    if (e.target === e.currentTarget) {
+    // Only enable dragging on the canvas background, not on nodes or edges
+    const target = e.target as HTMLElement
+    const isCanvasBackground = target === e.currentTarget || 
+                               target.classList.contains('canvas-bg') ||
+                               (target.tagName === 'DIV' && target.classList.contains('relative'))
+    
+    if (isCanvasBackground && !target.closest('.absolute')) {
       setIsDragging(true)
       setDragStart({ x: e.clientX - viewportOffset.x, y: e.clientY - viewportOffset.y })
       dispatch(selectNode(null))
+      e.preventDefault()
     }
   }
 
@@ -191,6 +198,7 @@ export default function MindMap() {
         x: e.clientX - dragStart.x,
         y: e.clientY - dragStart.y,
       })
+      e.preventDefault()
     }
   }
 
@@ -327,12 +335,12 @@ export default function MindMap() {
   }
 
   return (
-    <div className="h-screen w-screen flex flex-col bg-gradient-to-br from-slate-50 via-white to-blue-50/30 relative overflow-hidden">
+    <div className="h-screen w-screen flex flex-col bg-gradient-to-br from-slate-50 via-white to-blue-50/30 relative overflow-hidden max-w-full">
       {/* Animated background gradient */}
       <div className="absolute inset-0 bg-gradient-to-br from-blue-50/20 via-transparent to-purple-50/20 animate-gradient-shift pointer-events-none"></div>
       
       {/* Toolbar */}
-      <div className="bg-white/90 backdrop-blur-md border-b border-gray-200/60 shadow-lg relative z-10 px-6 py-4 flex items-center gap-4">
+      <div className="bg-white/90 backdrop-blur-md border-b border-gray-200/60 shadow-lg relative z-10 px-4 sm:px-6 py-3 sm:py-4 flex items-center gap-2 sm:gap-4 flex-wrap sm:flex-nowrap">
         {/* Logo */}
         <div className="flex items-center gap-3 mr-1 group">
           <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-slate-700 via-slate-800 to-slate-900 flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all duration-300 group-hover:scale-110 group-hover:rotate-3">
@@ -344,20 +352,21 @@ export default function MindMap() {
         <div className="h-7 w-px bg-gray-200 mx-1" />
 
         {/* Actions */}
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-center gap-1.5 sm:gap-2.5 flex-wrap sm:flex-nowrap">
           <button
             onClick={handleCreateNode}
-            className="group flex items-center gap-2 px-5 py-2.5 bg-gradient-to-br from-slate-700 via-slate-800 to-slate-900 text-white rounded-xl hover:from-slate-800 hover:via-slate-900 hover:to-black transition-all duration-300 text-sm font-semibold shadow-lg hover:shadow-2xl hover:shadow-slate-900/30 active:scale-95 relative overflow-hidden"
+            className="group flex items-center gap-1.5 sm:gap-2 px-3 sm:px-5 py-2 sm:py-2.5 bg-gradient-to-br from-slate-700 via-slate-800 to-slate-900 text-white rounded-xl hover:from-slate-800 hover:via-slate-900 hover:to-black transition-all duration-300 text-xs sm:text-sm font-semibold shadow-lg hover:shadow-2xl hover:shadow-slate-900/30 active:scale-95 relative overflow-hidden"
             title="Add a new node"
           >
             <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
-            <Plus size={17} strokeWidth={3} className="relative z-10 group-hover:rotate-90 transition-transform duration-300" />
-            <span className="relative z-10">Add Node</span>
+            <Plus size={16} strokeWidth={3} className="relative z-10 group-hover:rotate-90 transition-transform duration-300 sm:w-[17px] sm:h-[17px]" />
+            <span className="relative z-10 hidden sm:inline">Add Node</span>
+            <span className="relative z-10 sm:hidden">Add</span>
           </button>
           
           <button
             onClick={() => setConnectingFrom(connectingFrom ? null : selectedNodeId || null)}
-            className={`group flex items-center gap-2 px-5 py-2.5 rounded-xl transition-all duration-300 text-sm font-semibold relative overflow-hidden ${
+            className={`group flex items-center gap-1.5 sm:gap-2 px-3 sm:px-5 py-2 sm:py-2.5 rounded-xl transition-all duration-300 text-xs sm:text-sm font-semibold relative overflow-hidden ${
               connectingFrom
                 ? 'bg-gradient-to-br from-emerald-500 via-emerald-600 to-emerald-700 text-white hover:from-emerald-600 hover:via-emerald-700 hover:to-emerald-800 shadow-lg hover:shadow-2xl hover:shadow-emerald-500/30 active:scale-95'
                 : 'bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-200/50 hover:border-gray-300 active:scale-95'
@@ -368,7 +377,7 @@ export default function MindMap() {
             {connectingFrom && (
               <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
             )}
-            <Link2 size={17} strokeWidth={3} className={`relative z-10 ${connectingFrom ? 'group-hover:rotate-180 transition-transform duration-500' : ''}`} />
+            <Link2 size={16} strokeWidth={3} className={`relative z-10 ${connectingFrom ? 'group-hover:rotate-180 transition-transform duration-500' : ''} sm:w-[17px] sm:h-[17px]`} />
             <span className="relative z-10">{connectingFrom ? 'Cancel' : 'Link'}</span>
           </button>
 
@@ -384,7 +393,7 @@ export default function MindMap() {
         </div>
 
         {/* Status & User Info */}
-        <div className="ml-auto flex items-center gap-3">
+        <div className="ml-auto flex items-center gap-2 sm:gap-3">
           <div className={`flex items-center gap-2.5 px-4 py-2 rounded-xl text-xs font-semibold transition-all backdrop-blur-sm ${
             isConnected 
               ? 'bg-gradient-to-br from-emerald-50 to-emerald-100/80 text-emerald-700 border border-emerald-300/50 shadow-sm hover:shadow-md' 
@@ -418,7 +427,7 @@ export default function MindMap() {
       {/* Canvas */}
       <div
         ref={canvasRef}
-        className="flex-1 relative overflow-hidden cursor-grab active:cursor-grabbing canvas-bg relative z-0"
+        className="flex-1 relative overflow-auto cursor-grab active:cursor-grabbing canvas-bg relative z-0"
         style={{ 
           minHeight: '400px'
         }}
@@ -475,7 +484,9 @@ export default function MindMap() {
 
         {/* Empty state */}
         {nodes.length === 0 && edges.length === 0 && (
-          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none" style={{
+            transform: `translate(${viewportOffset.x}px, ${viewportOffset.y}px)`,
+          }}>
             <div className="text-center animate-fade-in">
               <div className="relative w-24 h-24 mx-auto mb-6">
                 <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-blue-100 via-purple-100 to-pink-100 flex items-center justify-center shadow-2xl border-2 border-white/50 animate-pulse-slow"></div>
@@ -497,7 +508,7 @@ export default function MindMap() {
 
         {/* Connecting indicator */}
         {connectingFrom && (
-          <div className="absolute top-6 left-6 bg-gradient-to-br from-amber-50 via-amber-100 to-yellow-100 border-2 border-amber-300/60 text-amber-900 px-5 py-3 rounded-xl text-sm z-50 shadow-2xl backdrop-blur-md animate-slide-in">
+          <div className="fixed top-20 left-4 sm:top-24 sm:left-6 bg-gradient-to-br from-amber-50 via-amber-100 to-yellow-100 border-2 border-amber-300/60 text-amber-900 px-4 sm:px-5 py-2.5 sm:py-3 rounded-xl text-xs sm:text-sm z-50 shadow-2xl backdrop-blur-md animate-slide-in">
             <div className="flex items-center gap-3">
               <div className="relative">
                 <div className="w-3 h-3 rounded-full bg-gradient-to-br from-amber-500 to-amber-600 animate-pulse"></div>
