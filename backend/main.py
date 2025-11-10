@@ -4,11 +4,11 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import socketio
 from socketio import AsyncServer, ASGIApp
-from database import AsyncSessionLocal
+from database import AsyncSessionLocal, engine, Base
 from sqlalchemy import text
 import crud
 import schemas
-from models import Session
+from models import Session, Node, Edge
 
 # Allowed origins for CORS
 ALLOWED_ORIGINS = [
@@ -39,6 +39,19 @@ app.add_middleware(
 
 # Wrap FastAPI with Socket.IO ASGI app
 asgi_app = ASGIApp(sio, other_asgi_app=app)
+
+
+# Initialize database tables on startup
+@app.on_event("startup")
+async def init_database():
+    """Create database tables if they don't exist"""
+    try:
+        async with engine.begin() as conn:
+            await conn.run_sync(Base.metadata.create_all)
+        print("✅ Database tables initialized successfully!")
+    except Exception as e:
+        print(f"⚠️  Database initialization warning: {e}")
+        # Don't fail startup if tables already exist
 
 
 # ==================== REST API ENDPOINTS ====================
